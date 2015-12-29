@@ -142,6 +142,11 @@ module.exports = function( grunt ) {
 
 		var createJob = function( route ) {
 
+			console.log( options.baseUrl + route );
+			console.log( options.browsers );
+			console.log( options.local );
+			console.log( options.wait_time );
+		
 			return baseRequest( {
 				url: "/screenshots",
 				method: "POST",
@@ -155,8 +160,8 @@ module.exports = function( grunt ) {
 				jobs.push( new Job( route, response.job_id, response.screenshots ) );
 				return response;
 			} ).catch( function(error) {
-				grunt.log.errorlns( "Createjob request failed" );
-				grunt.log.errorlns( error );
+				console.log(error);
+				console.dir(error);
 			} );
 
 		};
