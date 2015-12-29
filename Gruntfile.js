@@ -18,15 +18,14 @@ module.exports = function( grunt ) {
 
 		screenshots: {
 
-			default_options: {
+			local_options: {
 				options: {
 					bsKey: process.env[ "BS_KEY" ],
 					bsUser: process.env[ "BS_USER" ],
 					local: true,
-					ci: false,
-					downloadPath: "tmp", // Specify a webhook URL instead, if using CI
+					downloadPath: "tmp",
 					baseUrl: "http://localhost:63005",
-					routes: [ "/", "/legal" ],
+					routes: [ "/", "/faq", "/blog" ],
 					browsers: [
 						{
 							os: "Windows", 
@@ -37,7 +36,7 @@ module.exports = function( grunt ) {
 						{
 							os: "Windows", 
 							browser_version: "37.0", 
-							os_version: "7", 
+							os_version: "8.1", 
 							browser: "firefox"
                     	},
                     	{
