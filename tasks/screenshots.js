@@ -28,6 +28,7 @@ module.exports = function( grunt ) {
 		var options = this.options( {
 			downloadPath: "tmp",
 			local: true,
+			launchTunnel: true,
 			wait_time: 5
 		} );
 
@@ -95,9 +96,7 @@ module.exports = function( grunt ) {
 
 		var launchTunnel = function( callback ) {
 
-			var isTunnelRequired = ( options.local === true );
-
-			if ( !isTunnelRequired ) {
+			if ( options.launchTunnel !== true ) {
 				callback();
 				return;
 			}
@@ -141,11 +140,6 @@ module.exports = function( grunt ) {
 		};
 
 		var createJob = function( route ) {
-
-			console.log( options.baseUrl + route );
-			console.log( options.browsers );
-			console.log( options.local );
-			console.log( options.wait_time );
 		
 			return baseRequest( {
 				url: "/screenshots",
