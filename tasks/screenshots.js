@@ -154,6 +154,9 @@ module.exports = function( grunt ) {
 			} ).then( function(response) {
 				jobs.push( new Job( route, response.job_id, response.screenshots ) );
 				return response;
+			} ).catch( function(error) {
+				grunt.log.errorlns( "Createjob request failed" );
+				grunt.log.errorlns( error );
 			} );
 
 		};
@@ -163,6 +166,9 @@ module.exports = function( grunt ) {
 			return baseRequest( {
 				url: "/screenshots/" + jobID + ".json",
 				method: "GET"
+			} ).catch( function(error) {
+				grunt.log.errorlns( "Getjob request failed" );
+				grunt.log.errorlns( error );
 			} );
 
 		};

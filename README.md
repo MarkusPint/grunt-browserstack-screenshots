@@ -36,3 +36,4 @@ options: {
 ## Release History
 - 0.0.1 Initial publish
 - 0.0.2 Proof of concept
+- 0.0.3 Improved error logging

@@ -22,9 +22,9 @@ module.exports = function( grunt ) {
 				options: {
 					bsKey: process.env[ "BS_KEY" ],
 					bsUser: process.env[ "BS_USER" ],
-					local: true,
+					local: false,
 					downloadPath: "tmp",
-					baseUrl: "http://localhost:63005",
+					baseUrl: "http://dev.plastc.com",
 					routes: [ "/", "/faq", "/blog" ],
 					browsers: [
 						{
