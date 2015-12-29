@@ -130,11 +130,13 @@ module.exports = function( grunt ) {
 						grunt.log.errorlns( "Could not close tunnel(s) due to: " + error + "." );
 					} else {
 						grunt.log.ok( "Successfully closed tunnel!" );
-						endTask();
+					    endTask();
 					}
 
 				} );
 
+			} else {
+				endTask();
 			}
 
 		};
