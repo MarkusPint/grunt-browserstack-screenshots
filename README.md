@@ -48,3 +48,4 @@ grunt.initConfig({
 - 0.0.2 Proof of concept
 - 0.0.3 Improved error logging
 - 0.0.8 Slack/HTML reporting
+- 0.1.0 NPM metadata improvement
