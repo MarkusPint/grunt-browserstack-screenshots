@@ -1,6 +1,6 @@
 {
   "name": "grunt-browserstack-screenshots",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A Grunt plugin for creating screenshots of different pages of a website using BrowserStack Screenshots API.",
   "engines": {
     "node": ">= 4.2.0"

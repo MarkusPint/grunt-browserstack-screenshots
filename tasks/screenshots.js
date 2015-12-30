@@ -84,10 +84,6 @@ module.exports = function( grunt ) {
 			this.screenshots = screenshots;
 			this.done = false;
 
-			this.firstToUpperCase = function( str ) { 
-    			return str.substr( 0, 1 ).toUpperCase() + str.substr( 1 );
-			};
-
 		};
 
 		var baseRequest = request.defaults( {
@@ -99,6 +95,10 @@ module.exports = function( grunt ) {
 				password: options.bsKey
 			}
 		} );
+
+		var firstToUpperCase = function( str ) { 
+    		return str.substr( 0, 1 ).toUpperCase() + str.substr( 1 );
+		};
 
 		var launchTunnel = function( callback ) {
 
@@ -278,7 +278,7 @@ module.exports = function( grunt ) {
 			var templateCompiled = handlebars.compile( template );
 
 			for ( var i = 0; i < jobs.length; i++ ) {
-				jobs[ i ].name = jobs[ i ].firstToUpperCase( jobs[ i ].name );
+				jobs[ i ].name = firstToUpperCase( jobs[ i ].name );
 				jobs[ i ].url = util.format( "%s/screenshots/%s", apiRoot, jobs[ i ].id );
 			}
 
