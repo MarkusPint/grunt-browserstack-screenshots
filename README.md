@@ -1,6 +1,6 @@
 # grunt-browserstack-screenshots
 
-> NB! Work in progress. **Not ready for use!**
+> Generate screenshots of a local or a live site via BrowserStack Screenshots API; report to Slack or generate a local HTML report file.
 
 ## Getting Started
 This plugin requires Grunt `~0.4.5`
@@ -20,20 +20,31 @@ grunt.loadNpmTasks( "grunt-browserstack-screenshots" );
 ## The "screenshots" task
 
 ### Overview
-In your project's Gruntfile, the `screenshots` task is available to use.
+In your project's Gruntfile, add a section named `screenshots` to the data object passed into `grunt.initConfig()`.
 
-You can run `grunt screenshots` standalone
-Or add it to an existing task: `grunt.registerTask('test', ['clean', 'screenshots']);`
-
-### Options
-
-```javascript
-options: {
-
-}
+```js
+grunt.initConfig({
+  screenshots: {
+    task: {
+      options: {
+        bsUser: "<your BrowserStack user>",
+        bsKey: "<your BrowserStack key>",
+        local: false, // Set to true, if testing a local site
+        launchTunnel: true, // Set to true, if you are testing a local site and not setting up a tunnel yourself
+        reportDir: "tmp", // Specify a directory for the HTML report, alternatively specify slackWebhook
+        slackWebhook: "<Your Slack webhook URL>", // Specify instead of reportDir, if you want to report to Slack
+        projectTitle: "<Project name>", // Displayed in the report
+        baseUrl: "<The URL of the site you want to screenshot>",
+        routes: [ "/", "/about" ], // The routes of the site you want to screenshot
+        browsers: [] // BrowserStack browsers option; passed directly to BrowserStack
+      }
+    }
+  }
+})
 ```
 
 ## Release History
 - 0.0.1 Initial publish
 - 0.0.2 Proof of concept
 - 0.0.3 Improved error logging
+- 0.0.8 Slack/HTML reporting

@@ -14,9 +14,9 @@ var Promise = require( "bluebird" );
 var ProgressBar = require( "progress" );
 var fs = Promise.promisifyAll( require("fs") );
 var mkdirp = require( "mkdirp" );
-var wget = require( "wgetjs" );
 var path = require( "path" );
 var util = require( "util" );
+var handlebars = require( "handlebars" );
 
 module.exports = function( grunt ) {
 
@@ -26,11 +26,13 @@ module.exports = function( grunt ) {
 
 		// Set some defaults as well
 		var options = this.options( {
-			downloadPath: "tmp",
+			reportDir: "tmp",
 			local: true,
 			launchTunnel: true,
-			wait_time: 5
+			projectTitle: ""
 		} );
+
+		var apiRoot = "https://www.browserstack.com";
 
 		var	endTask = this.async();
 
@@ -82,12 +84,16 @@ module.exports = function( grunt ) {
 			this.screenshots = screenshots;
 			this.done = false;
 
+			this.firstToUpperCase = function( str ) { 
+    			return str.substr( 0, 1 ).toUpperCase() + str.substr( 1 );
+			};
+
 		};
 
 		var baseRequest = request.defaults( {
 			json: true,
 			encoding: "utf8",
-			baseUrl: "https://www.browserstack.com",
+			baseUrl: apiRoot,
 			auth: {
 				user: options.bsUser,
 				password: options.bsKey
@@ -103,7 +109,7 @@ module.exports = function( grunt ) {
 
 			tunnel = new BsTunnel( {
 				key: options.bsKey,
-				force: true // Kill any existing instances
+				force: true // Kill any existing tunnels
 			} );
 
 			tunnel.start( function( error ) {
@@ -205,7 +211,6 @@ module.exports = function( grunt ) {
 				if ( value === false ) { return; }
 
 				if ( value > 10 ) { 
-					console.log( "job timeout " + job.id );
 					grunt.log.errorlns( "Job timeout: " + job.id );
 					return;
 				}
@@ -267,55 +272,21 @@ module.exports = function( grunt ) {
 
 		};
 
-		var downloadScreenshots = function() {
+		var reportLocal = function() {
 
-			var downloadJobScreenshots = function( job ) {
-
-				var downloads = [];
-
-				for ( var i = 0; i < job.screenshots.length; i++ ) {
-
-					if ( job.screenshots[i].state === "done" ) {
-						downloads.push( downloadScreenshot( job.screenshots[i], job.name ) );
-					}
-
-				}
-
-				return Promise.all( downloads );
-
-			};
-
-			var generateScreenshotPath = function( imageUrl, directory ) {
-
-				var fileName = imageUrl.substr( imageUrl.lastIndexOf( "/" ) + 1 );
-				return path.join( options.downloadPath, directory, fileName );
-
-			};
-
-			var downloadScreenshot = function( screenshot, directory ) {
-
-				mkdirp.sync( path.join( options.downloadPath, directory ) );
-
-				return new Promise(function (resolve, reject) {
-
-					wget({
-						url: screenshot.image_url,
-						dest: generateScreenshotPath( screenshot.image_url, directory )
-					}, function() {
-						resolve();
-					});
-
-				});
-
-			}; 
-
-			var jobDownloads = [];
+			var template = fs.readFileSync( path.join( __dirname, "/lib", "screenshots.hbs"), "utf8" );
+			var templateCompiled = handlebars.compile( template );
 
 			for ( var i = 0; i < jobs.length; i++ ) {
-				jobDownloads.push( downloadJobScreenshots( jobs[i] ) );
+				jobs[ i ].name = jobs[ i ].firstToUpperCase( jobs[ i ].name );
+				jobs[ i ].url = util.format( "%s/screenshots/%s", apiRoot, jobs[ i ].id );
 			}
 
-			return Promise.all( jobDownloads );
+			var html = templateCompiled( { projectTitle: options.projectTitle, jobs: jobs } );
+
+			mkdirp.sync( path.join( options.reportDir ) );
+
+			return fs.writeFileAsync( path.join( options.reportDir, "screenshots.html" ), html, { encoding: "utf8" } );
 
 		};
 
@@ -323,17 +294,14 @@ module.exports = function( grunt ) {
 
 			var slackPost = {
 				username: "BrowserStack Screenshots",
-				text: util.format( "These are screenshots of the latest *%s* build:", options.slack.projectTitle ),
+				text: util.format( "Cross-browser screenshots of the latest *%s* build have been generated.\nClick on a page name to see the screenshots.", options.projectTitle ),
 				attachments: []
 			};
 
-			var generateScreenshotLink = function( imageUrl ) {
+			var generateJobLink = function( jobName, jobID ) {
 
-				var withExtension = imageUrl.substr( imageUrl.lastIndexOf( "/" ) + 1 );
-				var withoutExtension = withExtension.replace( /.png|.jpg/g, "" );
-				var link;
-
-				return util.format( "<%s|%s>", imageUrl, withoutExtension );
+				var jobUrl = util.format( "%s/screenshots/%s", apiRoot, jobID );
+				return util.format( "<%s|%s>", jobUrl, firstToUpperCase( jobName ) );
 
 			};
 
@@ -343,36 +311,22 @@ module.exports = function( grunt ) {
 				mrkdwn_in: [ "text" ]
 			};
 
-			var firstToUpperCase = function( str ) {
-    			return str.substr(0, 1).toUpperCase() + str.substr(1);
-			};
-
 			for ( var i = 0; i < jobs.length; i++ ) {
-				
-				report.text += util.format( "*%s*\n", firstToUpperCase( jobs[i].name ) );
 
-				for ( var j = 0; j < jobs[i].screenshots.length; j++ ) {
-
-					if ( jobs[i].screenshots[j].state === "done" ) {
-
-						if ( j === jobs[i].screenshots.length - 1 ) {
-							// Last one
-							report.text += generateScreenshotLink( jobs[i].screenshots[j].image_url ) + "\n\n";
-						} else {
-							report.text += generateScreenshotLink( jobs[i].screenshots[j].image_url ) + " / ";
-						}
-
-					}
-
+				if ( i === jobs.length - 1 ) {
+					// Last one
+					report.text += generateJobLink( jobs[ i ].name, jobs[ i ].id );
+				} else {
+					report.text += generateJobLink( jobs[ i ].name, jobs[ i ].id ) + " / ";
 				}
-
+		
 			}
 
 			slackPost.attachments.push( report );
 
 			return request( {
 				method: "POST",
-				url: options.slack.webhook,
+				url: options.slackWebhook,
 				json: slackPost
 			} );
 
@@ -384,17 +338,17 @@ module.exports = function( grunt ) {
 
 				pollJobs().then(function() {
 
-					if ( typeof options.downloadPath === "string" && typeof options.slack === "undefined" ) {
+					if ( typeof options.reportDir === "string" && typeof options.slackWebhook === "undefined" ) {
 						
-						return downloadScreenshots().then(function() {
-							grunt.log.ok( "Successfully downloaded all screenshots." );
-						});
+						return reportLocal().then( function() {
+							grunt.log.ok( "Successfully generated local report." );
+						} );
 
-					} else if ( typeof options.slack === "object" ) {
+					} else if ( typeof options.slackWebhook === "string" ) {
 
-						return reportSlack().then(function() {
+						return reportSlack().then( function() {
 							grunt.log.ok( "Successfully posted a Slack report." );
-						});
+						} );
 
 					}
 

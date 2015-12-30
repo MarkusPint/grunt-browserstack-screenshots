@@ -1,0 +1,23 @@
+<html>
+<head>
+	<title>{{ projectTitle }} screenshots report</title>
+</head>
+<body>
+	<style>
+	* { font-family: Tahoma, sans-serif; color: #000; } 
+	body { margin: 30px; }
+	ul { list-style-type: none; margin: 0; padding: 0; margin-top: 30px;}
+	li { margin: 0; padding: 0; float: left; margin-left: 15px; } 
+	li:first-child { margin-left: 0;}
+	.btn { background: rgb(74, 217, 164); padding: 10px; padding-left: 15px; padding-right: 15px;}
+	</style>
+	<h3>{{ projectTitle }} screenshots report</h3>
+	
+	<ul>
+	{{#each jobs}}
+	 <li><a class="btn" href="{{ url }}" target="_blank">{{ name }}</a></li>
+  	{{/each}}
+  	</ul>
+
+</body>
+</html>
